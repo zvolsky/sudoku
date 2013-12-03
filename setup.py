@@ -9,7 +9,7 @@ from setuptools import setup, find_packages
 def make_setup():
     setup(
         name = "mzsudoku",
-        version = "0.8.8",
+        version = "0.8.9",
         #packages = ["mzsudoku"], # find_packages(),
         py_modules = ["mzsudoku", "ez_setup"],
         author = "Zvolsky Mirek",

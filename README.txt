@@ -37,7 +37,7 @@ TODO: at this time a|A can only set naked singleton numbers (from possibilities 
   - hidden placing of single number (r section) - such number is sure
   
 Info: There are puzzles, which cannot be solved by finding of naked/hidden n-combinations.
-In such case (and in more cases while a|A not implement all knowledges - see TODO) code will finish before solution.
+In such case (and in more cases while a|A doesn't implement all knowledge - see TODO) code will finish before solution.
 
 Info: If a|A iterations will not lead to the solution, you can change the starting command
 to use more knowledges (see TODO)
