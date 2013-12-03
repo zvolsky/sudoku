@@ -30,8 +30,8 @@ means:
 
 TODO: at this time a|A can only set naked singleton numbers (from possibilities table);
   we need to implement more from
-  - naked n-combinations (p section)
-  - hidden n-combinations (r section)
+  - naked n-combinations (p section) - such numbers can be removed from other positions in line/column/block
+  - hidden placing of single number (r section) - such number is sure
   
 Info: There are puzzles, which cannot be solved by finding of naked/hidden n-combinations.
 In such case (and in more cases while a|A not implement all knowledges - see TODO) code will finish before solution.
