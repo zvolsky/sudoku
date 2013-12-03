@@ -2,15 +2,44 @@
 
 ## code: *mzsudoku.py*
 
-python mzsudoku.py 020080700..... p    # print possibilities as table
+usage: python mzsudoku.py 81-characters options
 
-python mzsudoku.py 020080700..... n    # find hidden n-combinations
+81-characters - 1..9 or 0 for unknown
 
-python mzsudoku.py 020080700..... r    # find solution and print result
+options (any combination of p, n, r, a|A, = ; default is: pnr)
+- p print possibilities as table
+- n find hidden n-combinations
+- r find solution and print result
+- a apply known and run next cycle after pressing Enter
+- A apply known and run next cycle immediately
+- = show fixed numbers in p table (otherwise they are left blank)
 
- r: from http://freepythontips.wordpress.com/2013/09/01/sudoku-solver-in-python/
+r option: from http://freepythontips.wordpress.com/2013/09/01/sudoku-solver-in-python/
 
-pnr can be combined: p n r pn pr nr pnr
+r option will return
+- first result only if there are more solutions
+- nothing if there is no solution
+
+### example
+python mzsudoku.py 020080700..... pnra=
+
+means:
+- write all (pnr),
+- apply known and continue after Enter (a),
+- show already fixed numbers (=)
+
+TODO: at this time a|A can only set naked singleton numbers (from possibilities table);
+  we need to implement more from
+  - naked n-combinations (p section)
+  - hidden n-combinations (r section)
+  
+Info: There are puzzles, which cannot be solved by finding of naked/hidden n-combinations.
+In such case (and in more cases while a|A not implement all knowledges - see TODO) code will finish before solution.
+
+Info: If a|A iterations will not lead to the solution, you can change the starting command
+to use more knowledges (see TODO)
+or to try some fork, f.e. if in '0' position you have possibilities (2,5)
+you can try: '2'->'0' and later '5'->'0'.    
 
 
 ## text in czech language:
