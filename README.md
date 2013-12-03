@@ -2,6 +2,9 @@
 
 ## code: *mzsudoku.py*
 
+In oposite to other sudoku modules this one gives to you a possibility solve step by step.
+So instead of just see the result you can f.e. find all possibilities and then continue in manual work. 
+
 usage: python mzsudoku.py 81-characters options
 
 81-characters - 1..9 or 0 for unknown
