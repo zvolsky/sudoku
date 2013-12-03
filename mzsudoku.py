@@ -1,6 +1,14 @@
 # coding: utf8
-# Name: mzsudoku
-# from http://freepythontips.wordpress.com/2013/09/01/sudoku-solver-in-python/ 
+'''
+Name: mzsudoku
+partially from http://freepythontips.wordpress.com/2013/09/01/sudoku-solver-in-python/
+
+Use mzsudoku.py as script
+-- or --
+mzsudoku.run('207006100000...') # 81 characters
+or run subparts of .run(): .p(), .pp(), .n(), .r()
+help(mzsudoku.run) or see run() code for details
+''' 
 
 import sys
 import itertools
@@ -13,8 +21,9 @@ def same_col(i,j): return (i-j) % 9 == 0
 def same_block(i,j): return (i/27 == j/27 and i%9/3 == j%9/3)
 
 def run(setting, out='pnr'):
-    '''run all: mark possibilities(p), find n-combinations(n), find result(r)
-    in addition to pnr, out cat contain:
+    '''setting: 81-characters string, 0 for unknown numbers
+    out: mark possibilities(p), find n-combinations(n), find result(r)
+    in addition to pnr, out can contain:
      = show definitely known numbers (otherwise show only unknown-possibilities)
      A apply known new numbers and cycle again
      a apply known new numbers after pressing Enter (anything else will quit)
@@ -219,7 +228,7 @@ def apply_known(setting, marked):
                     break
             continue   # setting2 enlarged already
         setting2 += setting[i]
-    return setting2 
+    return setting2
 
 if __name__ == '__main__':
     if len(sys.argv)>=2 and len(sys.argv[1]) == 81:

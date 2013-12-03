@@ -1,0 +1,5 @@
+zvýšit číslo verze v setup.py a nahrát takto:
+setup.py register sdist bdist_egg upload
+
+po instalaci nové verze setuptools nakopírovat ez_setup.py, např. z
+https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py
