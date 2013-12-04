@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="keywords" content="sudoku python module modules mzsudoku" />
+    <meta name="description" content="mzsudoku - python module for sudoku" />
+    <title>mzsudoku</title>
+  </head>
+
+  <body>
+    <h2>sudoku</h2>
+    <h3>python module (or script): mzsudoku.py</h3>
+
+    <p>In oposite to other sudoku modules this one gives to you a possibility solve step by step.
+    So instead of just see the result you can f.e. find all possibilities and then continue in manual work.</p> 
+
+    <h4>usage:</h4>
+    <p>
+    <ul>
+      <li>python mzsudoku.py 81-characters options</li>
+      <li>import mzsudoku; mzsudoku.run(81-characters, options)</li> 
+    </ul>
+    
+    <p>81-characters - 1..9 or 0 for unknown</p>
+
+    <p>options (any combination of p, n, r, a|A, = ; default is: pnr)
+      <ul>
+        <li>p - print possibilities as table</li>
+        <li>n - find hidden n-combinations</li>
+        <li>r - find solution and print result</li>
+        <li>a - apply known and run next cycle after pressing Enter</li>
+        <li>A - apply known and run next cycle immediately</li>
+        <li>= - show fixed numbers in p table (otherwise they are left blank)</li>
+      </ul>
+
+      <small>r option: from http://freepythontips.wordpress.com/2013/09/01/sudoku-solver-in-python/
+      <br /><br />
+      r option will return
+      <ul>
+        <li>first result only if there are more solutions</li>
+        <li>nothing if there is no solution</li>
+      </ul></small>
+    </p>
+    
+    <h4>example</h4>
+    <p>python mzsudoku.py 020080700..... pnra=</p>
+
+    <p>means:
+      <ul>
+        <li>write all (pnr),</li>
+        <li>apply known and continue after Enter (a),</li>
+        <li>show already fixed numbers (=)</li>
+      </ul>
+    </p>
+
+    <p><small>
+    TODO: at this time a|A can only set naked single numbers (from possibilities table);<br />
+      we need to implement more from
+      <ul>
+        <li>naked n-combinations (p section) - such numbers can be removed from other positions in line/column/block</li>
+        <li>hidden placing of single number (r section) - such number is sure</li>
+      </ul>
+    </small></p>
+  
+    <p>Info: <i>There are puzzles, which cannot be solved by finding of naked/hidden n-combinations.
+    In such case (and in more cases as long as a|A doesn't implement all knowledge - see TODO) code will finish before solution.</i></p>
+
+    <p>Info: <i>If a|A iterations will not lead to the solution, you can change the starting command
+    to use more knowledges (see TODO)
+    or to try some fork, <small>f.e. if in '0' position you have possibilities (2,5)
+    you can try: '2'->'0' and later '5'->'0'.</small></i></p>    
+
+    <p>repository: <a href="http://www.github.com/zvolsky/sudoku">github.com/zvolsky/sudoku</a>, where you can find text in czech language:
+    "How to find solution for Sudoku game".</p>
+
+  </body>
+</html> 

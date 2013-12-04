@@ -31,7 +31,7 @@ means:
 - apply known and continue after Enter (a),
 - show already fixed numbers (=)
 
-TODO: at this time a|A can only set naked singleton numbers (from possibilities table);
+TODO: at this time a|A can only set naked single numbers (from possibilities table);
   we need to implement more from
   - naked n-combinations (p section) - such numbers can be removed from other positions in line/column/block
   - hidden placing of single number (r section) - such number is sure
