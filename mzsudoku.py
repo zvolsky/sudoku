@@ -1,12 +1,14 @@
 # coding: utf8
 '''
 Name: mzsudoku
-partially from http://freepythontips.wordpress.com/2013/09/01/sudoku-solver-in-python/
 
-Use mzsudoku.py as script
+mzsudoku.run('207006100000...', options) # 81 characters
 -- or --
-mzsudoku.run('207006100000...') # 81 characters
-or run subparts of .run(): .p(), .pp(), .n(), .r()
+Use mzsudoku.py as script
+
+(r) option partially from
+http://freepythontips.wordpress.com/2013/09/01/sudoku-solver-in-python/
+
 help(mzsudoku.run) or see run() code for details
 ''' 
 
@@ -43,28 +45,34 @@ def fill(number, row, col):
     else:
         print "not suspended; run .run() first"
 
-def run(setting, out='pnr'):
-    '''setting: 81-characters string, 0 for unknown numbers
-    out: mark possibilities(p), find n-combinations(n), find result(r)
-    in addition to pnr, out can contain:
-     = show definitely known numbers (otherwise show only unknown-possibilities)
-     A apply known new numbers and cycle again
-     a apply known new numbers after pressing Enter (anything else will quit)
+def run(setting, options='tnr'):
+    '''setting: 81-characters string (or more with spaces; spaces will be removed),
+              0 for unknown numbers
+    options:
+     (t) show table (w/wo possibilities [see K]
+     (n) find n-combinations
+     (r) find result(r)
+    in addition to tnr, options can contain:
+     (k) show unknown-possibilities and definitely known numbers (tk)
+     (K) definitely known numbers only (tK)
+        ((t) without k/K will show unknown-possibilities only)
+     (a) apply known new numbers after pressing Enter (anything else will quit)
+     (A) apply known new numbers and cycle again
     '''
     
     global sudoku
     setting = setting or sudoku
+    setting = setting.replace(' ', '') 
     if len(setting)!=81:
         print 'string with 81 positions required (0 for unknown digits)'
         return
     
-    force = False
+    marked_by_N = {}
     while True:
-        n_to_apply = []
-        marked = p(setting)                # mark possibilities
-        if 'p' in out:
-            pp(marked, '=' in out)         # print possibilities as table
-        n(marked, 'n' in out, n_to_apply, force)  # localize hidden n-combinations
+        hidden_singles = []
+        marked = p(setting, marked_by_N)    # mark possibilities
+        n(marked, options, hidden_singles, marked_by_N)
+                                            # localize hidden n-combinations
         if finished:
             print
             print "FINISHED."
@@ -73,31 +81,32 @@ def run(setting, out='pnr'):
             print
             print "FAILURE IN SETTING."
             break
-        if not 'a' in out.lower():
+        if not 'a' in options.lower():
             break
-        setting2 = apply_known(setting, marked, n_to_apply)
+        setting2 = apply_known(setting, marked, hidden_singles)
         if setting==setting2:
-            if force:
-                print ("Cannot find algorithmical solution. "
+            print ("Cannot find algorithmical solution. "
                       "Try set something with .fill() method.")
-                break
-            else:
-                force = True
-                print "No easy solution - need to identify N-groups."
-        else:
-            force = False
-        if 'a' in out and raw_input(): 
+            break
+        if user_break(options):
             break
         setting = setting2
     sudoku = setting
     if '0' in sudoku:
-        print "suspended; use .fill(digit, row, col) and/or .run('', out)"
+        print "suspended; use .fill(digit, row, col) and/or .run('', options)"
     print sudoku
-    if 'r' in out and '0' in sudoku:
+    if 'r' in options and '0' in sudoku:
         #http://freepythontips.wordpress.com/2013/09/01/sudoku-solver-in-python/
         r(setting)   # solve based on recursive algorithmus from link above
 
-def p(a):
+def user_break(options):
+    if 'A' in options:
+        print "\n==== next iteration ====\n"
+        return False
+    return raw_input(
+             "press Enter for next iteration (something else + enter to stop)") 
+
+def p(a, marked_by_N):
     '''mark possibilities'''
     global finished
     finished = True
@@ -109,16 +118,86 @@ def p(a):
                 if a[j]!='0' and (
                           same_row(i,j) or same_col(i,j) or same_block(i,j)):
                     excluded_numbers.add(a[j])
+            if marked_by_N:
+                set_by_N = marked_by_N.get(i)
+                if set_by_N:
+                    excluded_numbers = excluded_numbers.union(set_by_N)  
             marked.append(excluded_numbers)
             finished = False
         else:
             marked.append(a[i])
     return marked
 
-def n(marked, print_result, n_to_apply, force):
+def n(marked, options, hidden_singles, marked_by_N):
     '''print where n-sets are inside possibilities'''
+
+    def pp(marked, options):
+        '''print marked possibilities'''
+
+        def psub(subln, row, marked, options):
+
+            def ppvertsep():
+                print '|',
+            
+            def pplinesep():
+                print
+
+            def ppskip():
+                print ' ',
+            
+            def pppossible(subnum):
+                print subnum, 
+            
+            def ppfixed(symbol, options):
+                if 'K' in options:
+                    print '  %s  ' % symbol,
+                elif 'k' in options:
+                    print ' = %s ' % symbol,
+                else:
+                    ppspace()
+            
+            def ppspace():
+                print 5*' ',
+    
+            show_poss = not 'K' in options
+            for cl in xrange(36):
+                subcl = cl%4
+                if subcl:
+                    pos = 9*row + cl/4
+                    if isinstance(marked[pos], set):
+                        subnum = str(3*(subln-1) + subcl)
+                        if not show_poss or subnum in marked[pos]:
+                            ppskip()
+                        else:
+                            pppossible(subnum) 
+                    elif subcl==1:
+                        if subln==2:
+                            ppfixed(marked[pos], options)
+                        else:
+                            ppspace()
+                else:
+                    ppvertsep()
+            ppvertsep()
+            pplinesep()
+        
+        def ppl():
+            print 9*'+-------' + '+'
+                       
+        if 't' in options:
+            for ln in xrange(36):
+                row = ln/4
+                subln = ln%4 
+                if subln:
+                    psub(subln, row, marked, options)
+                else:
+                    ppl()
+            ppl()
+
+    print_result = 'n' in options
+    used_groups = 0
+    hidden_groups = []
     while True:
-        resolve = False
+        pp(marked, options)           # print possibilities as table
         to_print = []
         for ln in xrange(9):
             block_pos = []
@@ -131,12 +210,8 @@ def n(marked, print_result, n_to_apply, force):
                     block_pos.append(pos)
                 else:
                     excluded.append(marked[pos])
-            resolve = solveN('ln%s'%(ln+1), block, excluded,
-                  block_pos, n_to_apply, to_print, marked, print_result, force)
-            if resolve:
-                break
-        if resolve:
-            continue     
+            solveN('ln%s'%(ln+1), block, excluded, used_groups, hidden_groups, 
+                  block_pos, hidden_singles, to_print, marked, print_result)
         for cl in xrange(9):
             block_pos = []
             block = []
@@ -148,12 +223,8 @@ def n(marked, print_result, n_to_apply, force):
                     block_pos.append(pos)
                 else:
                     excluded.append(marked[pos])
-            resolve = solveN('cl%s'%(cl+1), block, excluded,         
-                  block_pos, n_to_apply, to_print, marked, print_result, force)         
-            if resolve:
-                break
-        if resolve:
-            continue     
+            solveN('cl%s'%(cl+1), block, excluded, used_groups, hidden_groups,         
+                  block_pos, hidden_singles, to_print, marked, print_result)         
         for bl in xrange(9):
             block_pos = []
             hor = bl/3
@@ -168,26 +239,65 @@ def n(marked, print_result, n_to_apply, force):
                         block_pos.append(pos)
                     else:
                         excluded.append(marked[pos])
-            resolve = solveN('bl%s'%(bl+1), block, excluded,
-                  block_pos, n_to_apply, to_print, marked, print_result, force)         
-            if resolve:
-                break
-        if not resolve:
+            solveN('bl%s'%(bl+1), block, excluded, used_groups, hidden_groups,
+                  block_pos, hidden_singles, to_print, marked, print_result)         
+        if print_result and to_print:      
+            print "hidden n-combinations"
+            print ("[as naked <=> where / digits / field position "
+                            "(unknown fields counted)]:")
+            for line in to_print:
+                for item in line:
+                    print item,
+                print
+        naked_count = naked_singles(marked)
+        print "naked singles  : ", naked_count 
+        print "hidden singles : ", len(hidden_singles) 
+        if hidden_singles or naked_count or used_groups>=len(hidden_groups):
             break
-    if print_result and to_print:      
-        print "hidden n-combinations"
-        print ("[where / which numbers / field position "
-                        "(counted from unknown)]:")
-        for line in to_print:
-            for item in line:
-                print item,
-            print
+        # we have (more) hidden_groups and it is necessary to use them
+        # (symbol, candidate, where, lenN, block_pos, included, cnt_naked)
+        if not used_groups:
+            hidden_groups.sort(key=lambda item:item[6]) # cnt_naked
+            print "no easy solution - can try apply N-groups"
+        while used_groups<len(hidden_groups): 
+            hidden_group = hidden_groups[used_groups]                    
+            removed = set()
+            for where1 in hidden_group[2]:      # hidden_group[2] === where
+                pos = hidden_group[4][where1-1] # hidden_group[4] === block_pos 
+                for number in hidden_group[5]:  # hidden_group[5] === included
+                    if not number in hidden_group[1] and not number in marked[pos]:
+                                                # hidden_group[1] === candidate 
+                        removed.add(number)
+                        marked[pos].add(number)
+                        if not marked_by_N.has_key(pos):
+                            marked_by_N[pos] = set()
+                        marked_by_N[pos].add(number)
+            used_groups += 1
+            if removed:
+                if print_result:
+                    print hidden_group[0], hidden_group[1], hidden_group[2], 'removed:', removed
+                        # symbol, candidate, where
+                break
+            # if nothing changed, apply next N-group (if any)
+        if user_break(options):
+            used_groups = 0  # don't write about help of N-groups 
+            break
+    if used_groups:
+        if used_groups>=len(hidden_groups):
+            print "seems, no help received from N-groups"
+        else:
+            print "seems, N-groups helped us to continue" 
 
-def solveN(symbol, block, excluded, block_pos, n_to_apply, to_print, marked,
-                                                    print_result, force):
-    #print symbol, len(block), excluded
+def naked_singles(marked):
+    cnt = 0
+    for fld in marked:
+        if len(fld)==8:
+            cnt += 1
+    return cnt
+
+def solveN(symbol, block, excluded, used_groups, hidden_groups,
+          block_pos, hidden_singles, to_print, marked, print_result):
     global failure
-    resolve = False 
     included = []
     for number in '123456789':
         if not number in excluded:
@@ -203,90 +313,23 @@ def solveN(symbol, block, excluded, block_pos, n_to_apply, to_print, marked,
                 if len(where)>lenN:
                     break
             else:
-                print_append = [symbol, candidate, where]                
+                print_append = [symbol, candidate, where]
+                cnt_naked = len(block)-len(where) # visible as naked N-th                 
                 if len(where)==1:
                     to_append = (candidate, block_pos[where[0]-1])
-                    if not to_append in n_to_apply: 
-                        n_to_apply.append(to_append)
-                elif force:
-                    # resolves all N-groups; this however lead usualy to lot
-                    #   of additional information (and solution,
-                    #   if easy possible), so we use this if previous step
-                    #   wasn't sucessfull only
-                    removed = set()
-                    for where1 in where:
-                        #fld = block[where1-1]
-                        pos = block_pos[where1-1] 
-                        for number in included:
-                            if not number in candidate and not number in marked[pos]:
-                                resolve = True
-                                removed.add(number)
-                                marked[pos].add(number)
-                    if removed and print_result:
-                        print symbol, where, 'removed:', removed
+                    if not to_append in hidden_singles: 
+                        hidden_singles.append(to_append)
+                elif not used_groups:
+                    hidden_groups.append((symbol, candidate, where,
+                                lenN, block_pos, included, cnt_naked))
                 if len(where)<lenN:
                     failure = True
-                    print_append.append('WARNING: in %s fields only' % len(where))
+                    print_append.insert(0, 13*' ')
+                    print_append.append(
+                                'WARNING: in %s fields only' % len(where))
+                else:
+                    print_append.insert(0, 'naked %s  <=> ' % cnt_naked)
                 to_print.append(print_append)
-    return resolve  
-
-def pp(marked, show_fixed=False):
-    '''print marked possibilities'''
-    for ln in xrange(36):
-        row = ln/4
-        subln = ln%4 
-        if subln:
-            psub(subln, row, marked, show_fixed)
-        else:
-            ppl()
-    ppl()
-
-def psub(subln, row, marked, show_fixed=False):
-    for cl in xrange(36):
-        subcl = cl%4
-        if subcl:
-            pos = 9*row + cl/4
-            if isinstance(marked[pos], set):
-                subnum = str(3*(subln-1) + subcl)
-                if subnum in marked[pos]:
-                    ppskip()
-                else:
-                    pppossible(subnum) 
-            elif subcl==1:
-                if subln==2:
-                    ppfixed(marked[pos], show_fixed)
-                else:
-                    ppspace()
-        else:
-            ppvertsep()
-    ppvertsep()
-    pplinesep()
-
-def ppl():
-    print 9*'+-------' + '+'
-               
-def ppskip():
-    print ' ',
-
-def pppossible(subnum):
-    print subnum, 
-
-def ppvertsep():
-    print '|',
-
-def pplinesep():
-    print
-
-def ppfixed(symbol, show_fixed=False):
-    if show_fixed:
-        #print '* %s *' % symbol,
-        #print ' _%s_ ' % symbol,
-        print ' = %s ' % symbol,
-    else:
-        ppspace()
-
-def ppspace():
-    print 5*' ',
 
 def r(a):
     '''find solution
@@ -308,7 +351,7 @@ def r(a):
         if m not in excluded_numbers:
             r(a[:i]+m+a[i+1:])
 
-def apply_known(setting, marked, n_to_apply):
+def apply_known(setting, marked, hidden_singles):
     # apply naked singles
     setting2 = ''
     for i, fld in enumerate(marked):
@@ -321,7 +364,7 @@ def apply_known(setting, marked, n_to_apply):
         setting2 += setting[i]
 
     # apply hidden singles (obtained from n())
-    for candidate, pos in n_to_apply:
+    for candidate, pos in hidden_singles:
         if setting2[pos]=='0':
             setting2 = setting2[:pos] + candidate[0] + setting2[pos+1:]    
 
@@ -329,7 +372,7 @@ def apply_known(setting, marked, n_to_apply):
 
 if __name__ == '__main__':
     if len(sys.argv)>=2 and len(sys.argv[1]) == 81:
-        run(sys.argv[1], len(sys.argv)>=3 and sys.argv[2] or 'pnr')
+        run(sys.argv[1], len(sys.argv)>=3 and sys.argv[2] or 'tnr')
     else:
         print 'Usage: python sudoku.py puzzle'
         print '''  where puzzle is an 81 character string 
